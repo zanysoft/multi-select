@@ -12,7 +12,7 @@
 
 I'm a user-friendlier drop-in replacement for the standard select with multiple attribute activated.
 
-![jquerymultiselect.png](./assets/multi-select.png)
+![jquerymultiselect.png](./assets/multi-select.jpg)
 
 ## Creator
 
