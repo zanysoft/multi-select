@@ -65,7 +65,6 @@ $('#my-select').multiSelect()
 | dblClick           | Boolean   | false                 | Replace the defautl click event to select items by the dblclick one.           |
 | cssClass           | String    | ""                    | Add a custom CSS class to the multiselect container.                           |
 | search             | Boolean   | false                 | Enable search option.                                                          |
-| searchBind         | String    | "keyup"               | Replace the defautl input event to search items.                               |
 
 ## Methods
 

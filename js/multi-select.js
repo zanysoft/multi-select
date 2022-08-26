@@ -17,8 +17,9 @@
         this.$selectionContainer = $('<div/>', {'class': 'ms-selection'});
         this.$selectableSearch = $('<input/>', {'class': "ms-search-input ms-selectable-input", 'data-list': "selectable", 'placeholder': 'Search', 'autocomplete': 'off'});
         this.$selectionSearch = $('<input/>', {'class': "ms-search-input ms-selection-input", 'data-list': "selection", 'placeholder': 'Search', 'autocomplete': 'off'});
-        this.$selectableUl = $('<ul/>', {'class': "ms-list", 'tabindex': '-1'});
-        this.$selectionUl = $('<ul/>', {'class': "ms-list", 'tabindex': '-1'});
+        this.$selectableUl = $('<ul/>', {'tabindex': '-1'});
+        this.$selectionUl = $('<ul/>', {'tabindex': '-1'});
+        this.$notify = $('<div/>', {'class': "ms-notify"});
         this.scrollTo = 0;
         this.elemsSelector = 'li:visible:not(.ms-optgroup-label,.ms-optgroup-container,.' + options.disabledClass + ')';
     };
@@ -47,10 +48,12 @@
                 if (that.options.search) {
                     that.$selectableContainer.append($('<div/>', {'class': 'ms-search'}).append(that.$selectableSearch));
                 }
-                that.$selectableContainer.append(that.$selectableUl);
+                that.$selectableContainer.append($('<div/>', {'class': 'ms-list'}).append(that.$selectableUl));
                 if (that.options.selectableFooter) {
                     that.$selectableContainer.append($('<div/>', {'class': 'ms-footer'}).append(that.options.selectableFooter));
                 }
+
+                //that.$selectableUl.before(that.$notify);
 
                 if (that.options.selectionHeader) {
                     that.$selectionContainer.append($('<div/>', {'class': 'ms-header'}).append(that.options.selectionHeader));
@@ -59,7 +62,7 @@
                 if (that.options.search) {
                     that.$selectionContainer.append($('<div/>', {'class': 'ms-search'}).append(that.$selectionSearch));
                 }
-                that.$selectionContainer.append(that.$selectionUl);
+                that.$selectionContainer.append($('<div/>', {'class': 'ms-list'}).append(that.$selectionUl));
                 if (that.options.selectionFooter) {
                     that.$selectionContainer.append($('<div/>', {'class': 'ms-footer'}).append(that.options.selectionFooter));
                 }
@@ -81,14 +84,15 @@
                 });
 
                 if (that.options.search) {
-                    var searchAction = that.options.searchBind ? that.options.searchBind : 'keyup';
-                    that.$selectableSearch.on(searchAction, function () {
-                        that.search($(this));
+                    that.$selectableSearch.on('keyup', function () {
+                        that.search(this.value, this.dataset.list);
                     });
-                    that.$selectionSearch.on(searchAction, function () {
-                        that.search($(this));
+                    that.$selectionSearch.on('keyup', function () {
+                        that.search(this.value, this.dataset.list);
                     });
                 }
+
+                that.$container.after(that.$notify);
 
                 that.activeMouse(that.$selectionUl);
                 that.activeKeyboard(that.$selectionUl);
@@ -109,25 +113,22 @@
             }
         },
 
-        'search': function (input) {
+        'search': function (value, list) {
             var that = this, target = '';
-            var _list = input.attr('data-list');
-            var target = '';
 
-            if (_list === 'selectable') {
+            if (list === 'selectable') {
                 target = '#' + that.$container.attr('id') + ' .ms-elem-selectable:not(.ms-selected)';
             }
-            if (_list === 'selection') {
+            if (list === 'selection') {
                 target = '#' + that.$container.attr('id') + ' .ms-elem-selection.ms-selected';
             }
 
             if (target) {
                 var _options = $(target);
-                var val = $(input).val();
                 var numMatchedRows = 0,
                     noresults = true,
-                    query = val.toLowerCase().split(' '),
-                    val_empty = (val.replace(' ', '').length === 0);
+                    query = value.toLowerCase().split(' '),
+                    val_empty = (value.replace(' ', '').length === 0);
 
                 for (var i = 0, len = _options.length; i < len; i++) {
                     if (val_empty || this.testQuery(query, this.stripHtml(_options[i].innerHTML))) {
@@ -413,9 +414,10 @@
             });
         },
 
-        'refresh': function () {
+        'refresh': function (options) {
             this.destroy();
-            this.$element.multiSelect(this.options);
+            var _options = $.extend({}, this.options, typeof options === 'object' && options);
+            this.$element.multiSelect(_options);
         },
 
         'destroy': function () {
@@ -429,63 +431,178 @@
             if (typeof value === 'string') {
                 value = [value];
             }
+            var that = this;
+
+            $.each(value, function (index, val) {
+                that._select(val, method);
+            });
+
+            if (method === 'init') {
+                that._validateMaxOptions(value);
+            }
+        },
+
+        '_select': function (value, method) {
 
             var that = this,
                 ms = this.$element,
-                msIds = $.map(value, function (val) {
-                    return (that.sanitize(val));
-                }),
-                selectables = this.$selectableUl.find('#' + msIds.join('-selectable, #') + '-selectable').filter(':not(.' + that.options.disabledClass + ')'),
-                selections = this.$selectionUl.find('#' + msIds.join('-selection, #') + '-selection').filter(':not(.' + that.options.disabledClass + ')'),
-                options = ms.find('option:not(:disabled)').filter(function () {
-                    return ($.inArray(this.value, value) > -1);
+                msId = that.sanitize(value),
+                triggerChange = true,
+                selectables = this.$selectableUl.find('#' + msId + '-selectable').filter(':not(.' + that.options.disabledClass + ')'),
+                selections = this.$selectionUl.find('#' + msId + '-selection').filter(':not(.' + that.options.disabledClass + ')'),
+                option = ms.find('option:not(:disabled)').filter(function () {
+                    return (this.value == value);
                 });
 
-            if (method === 'init') {
-                selectables = this.$selectableUl.find('#' + msIds.join('-selectable, #') + '-selectable'),
-                    selections = this.$selectionUl.find('#' + msIds.join('-selection, #') + '-selection');
-            }
 
-            if (selectables.length > 0) {
-                selectables.addClass('ms-selected').hide();
-                selections.addClass('ms-selected').show();
+            var maxOptions = this.options.maxOptions;
+            var maxOptionsGrp = this.options.maxGroupOptions;
 
-                options.attr('selected', 'selected');
+            if (method !== 'init' && (maxOptions !== false || maxOptionsGrp !== false)) {
+                var $optgroup = option.parent('optgroup');
+                var _selected = ms.find('option:not(:disabled)').filter(':selected').length;
+                var _selectedGrp = $optgroup.find('option:selected').length;
+                var maxReached = maxOptions <= _selected;
+                var maxReachedGrp = maxOptionsGrp <= $optgroup.find('option:selected').length;
 
-                that.$container.find(that.elemsSelector).removeClass('ms-hover');
-
-                var selectableOptgroups = that.$selectableUl.children('.ms-optgroup-container');
-                if (selectableOptgroups.length > 0) {
-                    selectableOptgroups.each(function () {
-                        var selectablesLi = $(this).find('.ms-elem-selectable');
-                        if (selectablesLi.length === selectablesLi.filter('.ms-selected').length) {
-                            $(this).find('.ms-optgroup-label').hide();
+                if ((maxOptions && maxReached) || (maxOptionsGrp && maxReachedGrp)) {
+                    if (maxOptions && maxOptions == 1) {
+                        that.deselect_all();
+                    } else if (maxOptionsGrp && maxOptionsGrp == 1) {
+                        var $optgroupOptions = $optgroup.find('option:selected');
+                        for (var i = 0; i < $optgroupOptions.length; i++) {
+                            var _option = $optgroupOptions[i];
+                            that.deselect(_option.value);
                         }
-                    });
+                    } else {
+                        var maxOptionsText = typeof that.options.maxOptionsText === 'string' ? [that.options.maxOptionsText, that.options.maxOptionsText] : that.options.maxOptionsText;
+                        var maxOptionsArr = typeof maxOptionsText === 'function' ? maxOptionsText(maxOptions, maxOptionsGrp) : maxOptionsText;
+                        var maxTxt = maxOptionsArr[0].replace('{n}', maxOptions);
+                        var maxTxtGrp = maxOptionsArr[1].replace('{n}', maxOptionsGrp);
 
-                    var selectionOptgroups = that.$selectionUl.children('.ms-optgroup-container');
-                    selectionOptgroups.each(function () {
-                        var selectionsLi = $(this).find('.ms-elem-selection');
-                        if (selectionsLi.filter('.ms-selected').length > 0) {
-                            $(this).find('.ms-optgroup-label').show();
+                        if (maxOptions && maxReached) {
+                            that._showError(maxTxt, (_selected <= maxOptions));
+                            triggerChange = false;
                         }
-                    });
-                } else {
-                    if (that.options.keepOrder && method !== 'init') {
-                        var selectionLiLast = that.$selectionUl.find('.ms-selected');
-                        if ((selectionLiLast.length > 1) && (selectionLiLast.last().get(0) != selections.get(0))) {
-                            selections.insertAfter(selectionLiLast.last());
+
+                        if (maxOptionsGrp && maxReachedGrp) {
+                            that._showError(maxTxtGrp, (_selectedGrp <= maxOptionsGrp));
+                            triggerChange = false;
                         }
                     }
                 }
-                if (method !== 'init') {
-                    ms.trigger('change');
-                    that.search(that.$selectionSearch);
-                    if (typeof that.options.afterSelect === 'function') {
-                        that.options.afterSelect.call(this, value);
+            }
+
+            if (triggerChange) {
+                that._hideError();
+                if (method === 'init') {
+                    selectables = this.$selectableUl.find('#' + msId + '-selectable'), selections = this.$selectionUl.find('#' + msId + '-selection');
+                }
+
+                if (selectables.length > 0) {
+                    selectables.addClass('ms-selected').hide();
+                    selections.addClass('ms-selected').show();
+
+                    option.attr('selected', 'selected');
+
+                    that.$container.find(that.elemsSelector).removeClass('ms-hover');
+
+                    var selectableOptgroups = that.$selectableUl.children('.ms-optgroup-container');
+                    if (selectableOptgroups.length > 0) {
+                        selectableOptgroups.each(function () {
+                            var selectablesLi = $(this).find('.ms-elem-selectable');
+                            if (selectablesLi.length === selectablesLi.filter('.ms-selected').length) {
+                                $(this).find('.ms-optgroup-label').hide();
+                            }
+                        });
+
+                        var selectionOptgroups = that.$selectionUl.children('.ms-optgroup-container');
+                        selectionOptgroups.each(function () {
+                            var selectionsLi = $(this).find('.ms-elem-selection');
+                            if (selectionsLi.filter('.ms-selected').length > 0) {
+                                $(this).find('.ms-optgroup-label').show();
+                            }
+                        });
+                    } else {
+                        if (that.options.keepOrder && method !== 'init') {
+                            var selectionLiLast = that.$selectionUl.find('.ms-selected');
+                            if ((selectionLiLast.length > 1) && (selectionLiLast.last().get(0) != selections.get(0))) {
+                                selections.insertAfter(selectionLiLast.last());
+                            }
+                        }
+                    }
+                    if (method !== 'init') {
+                        ms.trigger('change');
+                        that.search(that.$selectionSearch);
+                        if (typeof that.options.afterSelect === 'function') {
+                            that.options.afterSelect.call(this, value);
+                        }
                     }
                 }
             }
+        },
+        '_validateMaxOptions': function (values) {
+            var that = this,
+                maxOptions = that.options.maxOptions,
+                maxOptionsGrp = that.options.maxGroupOptions,
+                validate = true;
+
+            if (maxOptions !== false || maxOptionsGrp !== false) {
+                var selectedOptions = this.$element.find('option:not(:disabled)').filter(':selected');
+
+                $.each(selectedOptions, function (index, option) {
+                    var $optgroup = $(this).parent('optgroup');
+
+                    var _selected = selectedOptions.length;
+                    var _selectedGrp = $optgroup.find('option:selected').length;
+
+                    var maxReached = maxOptions < _selected;
+                    var maxReachedGrp = maxOptionsGrp < _selectedGrp;
+
+                    if ((maxOptions && maxReached) || (maxOptionsGrp && maxReachedGrp)) {
+                        var maxOptionsText = typeof that.options.maxOptionsText === 'string' ? [that.options.maxOptionsText, that.options.maxOptionsText] : that.options.maxOptionsText;
+                        var maxOptionsArr = typeof maxOptionsText === 'function' ? maxOptionsText(maxOptions, maxOptionsGrp) : maxOptionsText;
+                        var maxTxt = maxOptionsArr[0].replace('{n}', maxOptions);
+                        var maxTxtGrp = maxOptionsArr[1].replace('{n}', maxOptionsGrp);
+
+                        if (maxOptions && maxReached) {
+                            that._showError(maxTxt);
+                            validate = false;
+                        }
+
+                        if (maxOptionsGrp && maxReachedGrp) {
+                            that._showError(maxTxtGrp);
+                            validate = false;
+                        }
+                    }
+                });
+
+                if (validate) {
+                    that._hideError();
+                }
+            }
+
+            return validate;
+        },
+
+        '_showError': function (msg, autohide) {
+            this._hideError();
+            var that = this;
+            var _notify = that.$container.next();
+            if (!_notify.is('.ms-notify')) {
+                _notify = that.$notify;
+                that.$container.after(_notify);
+            }
+            _notify.html(msg).show();
+            if (autohide) {
+                _notify.delay(5000).fadeOut(function () {
+                    _notify.remove();
+                });
+            }
+        },
+
+        '_hideError': function () {
+            this.$container.next('.ms-notify').remove();
         },
 
         'deselect': function (value) {
@@ -528,6 +645,7 @@
                         }
                     });
                 }
+                that._validateMaxOptions(value);
                 ms.trigger('change');
                 that.search(that.$selectableSearch);
                 if (typeof that.options.afterDeselect === 'function') {
@@ -610,14 +728,28 @@
     };
 
     $.fn.multiSelect.defaults = {
-        keySelect: [32],
+        keySelect: [32, 13],
+        maxOptions: false,
+        maxGroupOptions: false,
+        maxOptionsText: function (numAll, numGroup) {
+            return [
+                (numAll == 1) ? 'Limit reached ({n} item max)' : 'Limit reached ({n} items max)',
+                (numGroup == 1) ? 'Group limit reached ({n} item max)' : 'Group limit reached ({n} items max)'
+            ];
+        },
+        selectableHeader: false,
+        selectionHeader: false,
+        selectableFooter: false,
+        selectionFooter: false,
         selectableOptgroup: false,
         disabledClass: 'disabled',
         dblClick: false,
         keepOrder: false,
         search: false,
-        searchBind: 'keyup',
-        cssClass: ''
+        cssClass: '',
+        afterInit: null,
+        afterSelect: null,
+        afterDeselect: null,
     };
 
     $.fn.multiSelect.Constructor = MultiSelect;

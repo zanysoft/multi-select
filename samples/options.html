@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Options</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/multi-select.min.css">
+    <link rel="stylesheet" type="text/css" href="../assets/style.min.css">
+</head>
+<body>
+<div class="container">
+    <!-- start -->
+    <div class="text-center mt-5 mb-4 border-bottom">
+        <h1>Options</h1>
+
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Options</h3>
+            <div class="row" id="filter">
+                <div class="col-md-6">
+                    <div class="form-group group-sm">
+                        <label>selectableHeader
+                            <a title="selectableHeader" data-content="Text or HTML to display in the selectable header." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                        </label>
+                        <input type="text" min="0" class="form-control form-control-sm" name="selectableHeader" value="" data-default="false">
+
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <label>selectionHeader
+                        <a title="selectionHeader" data-content="Text or HTML to display in the selection header." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                    </label>
+                    <input type="text" min="0" class="form-control form-control-sm" name="selectionHeader" value="" data-default="false">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>selectableFooter
+                        <a title="selectableFooter" data-content="Text or HTML to display in the selectable footer." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                    </label>
+                    <input type="text" min="0" class="form-control form-control-sm" name="selectableFooter" value="" data-default="false">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>selectionFooter
+                        <a title="selectionFooter" data-content="Text or HTML to display in the selection footer." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                    </label>
+                    <input type="text" min="0" class="form-control form-control-sm" name="selectionFooter" value="" data-default="false">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>maxOptions
+                        <a title="maxOptions" data-content="Max number of selected options" class="help" data-toggle="popover" data-trigger="focus">?</a>
+
+                    </label>
+                    <input type="number" min="0" class="form-control form-control-sm" name="maxOptions" value="4" data-default="false">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>maxGroupOptions
+                        <a title="maxGroupOption" data-content="Max number of selected options in <optgroup>" class="help" data-toggle="popover" data-trigger="focus">?</a>
+                    </label>
+                    <input type="number" min="0" class="form-control form-control-sm" name="maxGroupOptions" id="maxGroupOptions" value="0" data-default="false">
+                </div>
+                <div class="form-group col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="true" data-default="false" name="selectableOptgroup" id="selectableOptgroup">
+                        <label class="form-check-label" for="selectableOptgroup">
+                            selectableOptgroup
+                            <a title="selectableOptgroup" data-content="Click on optgroup will select all nested options when set to true." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="true" data-default="false" name="dblClick" id="dblClick">
+                        <label class="form-check-label" for="dblClick">
+                            dblClick
+                            <a title="dblClick" data-content="Replace the defautl click event to select items by the dblclick one." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="true" data-default="false" name="keepOrder" id="keepOrder">
+                        <label class="form-check-label" for="keepOrder">
+                            keepOrder
+                            <a title="keepOrder" data-content="The selected items will be displayed in the same order than they are selected." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked value="true" data-default="false" name="search" id="search">
+                        <label class="form-check-label" for="search">
+                            search
+                            <a title="search" data-content="Enable search option." class="help" data-toggle="popover" data-trigger="focus">?</a>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <select class="form-control" multiple id='multiSelect'>
+                </select>
+            </div>
+
+            <div class="form-group">
+<pre><code class="language-javascript">
+&lt;script type="text/javascript"&gt;
+    $('#multiSelect').multiSelect({
+        maxOptions: 4,
+        maxGroupOptions: false
+    });
+&lt;/script&gt;
+</code></pre>
+            </div>
+        </div>
+    </div>
+    <!-- ends -->
+</div>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script src="../js/multi-select.js"></script>
+<script src="../assets/script.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        hljs.highlightAll();
+    })
+</script>
+</body>
+</html>
